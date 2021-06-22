@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.RestController;
 import sk.palko.tournament.dto.PlayerDto;
 import sk.palko.tournament.dto.PlayerRequestDto;
 import sk.palko.tournament.dto.MessageDto;
+import sk.palko.tournament.dto.PlayersDto;
 import sk.palko.tournament.exception.MaxPlayerCountReachedException;
 import sk.palko.tournament.service.PlayerService;
 import sk.palko.tournament.service.PlayerServiceImpl;
@@ -26,8 +27,8 @@ public class PlayerController {
   private PlayerService playerService;
 
   @GetMapping
-  public List<PlayerDto> listAllPlayers() {
-    return playerService.listAllPlayers();
+  public PlayersDto getPlayers() {
+    return new PlayersDto(playerService.listAllPlayers());
   }
 
   @PostMapping

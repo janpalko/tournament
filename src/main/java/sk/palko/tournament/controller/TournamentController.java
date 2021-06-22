@@ -35,7 +35,7 @@ public class TournamentController {
   private MatchService matchService;
 
   @GetMapping("/draw")
-  public MatchesDto listDraw() {
+  public MatchesDto getDraw() {
     return matchService.listDraw();
   }
 
