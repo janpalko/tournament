@@ -9,14 +9,13 @@ import sk.palko.tournament.domain.Player;
 import sk.palko.tournament.dto.MatchInfoDto;
 import sk.palko.tournament.dto.MatchResultDto;
 import sk.palko.tournament.dto.MatchesDto;
-import sk.palko.tournament.dto.PlayerDto;
-import sk.palko.tournament.dto.WinnersDto;
-import sk.palko.tournament.exception.InsufficientPlayerCountException;
 import sk.palko.tournament.exception.NoFreePlayerFoundException;
 import sk.palko.tournament.exception.NotFoundException;
+import sk.palko.tournament.exception.TournamentIllegalStateException;
 import sk.palko.tournament.repository.MatchRepository;
 import sk.palko.tournament.repository.PlayerRepository;
 
+import javax.transaction.Transactional;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
@@ -28,18 +27,24 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.StreamSupport;
 
+import static sk.palko.tournament.domain.Match.SCORE_SEPARATOR;
 import static sk.palko.tournament.service.PlayerServiceImpl.PLAYER_COUNT;
 
 @Service
+@Transactional
 public class MatchServiceImpl implements MatchService {
 
   private static final Logger LOGGER = LoggerFactory.getLogger(MatchServiceImpl.class);
 
   public static final int MATCH_COUNT_PER_PLAYER = 3;
+
   public static final int IMPOSSIBLE_MATCH = 0;
   public static final int CREATE_MATCH = 1;
   public static final int CREATED_MATCH = 2;
-  public static final String SCORE_SEPARATOR = ":";
+
+  public static final int POINTS_FOR_WIN = 3;
+  public static final int POINTS_FOR_LOST = 1;
+
   public static final String MATCH_NOT_FOUND_MESSAGE = "Match with ID '%d' was not found";
 
   @Autowired
@@ -62,7 +67,8 @@ public class MatchServiceImpl implements MatchService {
   protected void createDraw() {
     long currentPlayerCount = playerRepository.count();
     if (playerRepository.count() != PLAYER_COUNT) {
-      throw new InsufficientPlayerCountException(PLAYER_COUNT, currentPlayerCount);
+      throw new TournamentIllegalStateException(String.format("Unable to create tournament draw. '%d' players are required, but got only '%d'.",
+          PLAYER_COUNT, currentPlayerCount));
     }
 
     Player[] players = initPlayers();
@@ -132,11 +138,13 @@ public class MatchServiceImpl implements MatchService {
     throw new NoFreePlayerFoundException(); // should not happen
   }
 
-  private void createMatch(Player firstPlayer, Player secondPlayer) {
+  private Match createMatch(Player firstPlayer, Player secondPlayer) {
     Match match = new Match();
     match.setFirstPlayer(firstPlayer);
     match.setSecondPlayer(secondPlayer);
-    matchRepository.save(match);
+    match = matchRepository.save(match);
+    LOGGER.debug("Created " + match);
+    return match;
   }
 
   private void logDraw(Integer[][] matches) {
@@ -155,7 +163,7 @@ public class MatchServiceImpl implements MatchService {
   }
 
   private MatchInfoDto mapToInfoDto(Match match) {
-    return new MatchInfoDto(match.getMatchId(), match.getFirstPlayer().getPlayerId(), match.getSecondPlayer().getPlayerId());
+    return new MatchInfoDto(match.getFirstPlayer().getPlayerId(), match.getSecondPlayer().getPlayerId(), match.getMatchId());
   }
 
   @Override
@@ -166,38 +174,43 @@ public class MatchServiceImpl implements MatchService {
   }
 
   private MatchResultDto mapToResultDto(Match match) {
-    String result = null;
-    if (match.getFirstPlayerScore() != null && match.getSecondPlayerScore() != null) {
-      result = match.getFirstPlayerScore() + SCORE_SEPARATOR + match.getSecondPlayerScore();
-    }
-    return new MatchResultDto(match.getFirstPlayer().getName(), match.getSecondPlayer().getName(), result);
+    return new MatchResultDto(match.getFirstPlayer().getName(), match.getSecondPlayer().getName(), match.getResult());
   }
 
   @Override
   public void setMatchResult(int matchId, String result) {
-    Optional<Match> match = matchRepository.findById(matchId);
-    if (match.isPresent()) {
-      int[] score = parseResult(result);
-      Match matchValue = match.get();
-      matchValue.setFirstPlayerScore(score[0]);
-      matchValue.setSecondPlayerScore(score[1]);
-      matchRepository.save(matchValue);
+    Optional<Match> matchOptional = matchRepository.findById(matchId);
+    if (matchOptional.isPresent()) {
+      Match match = matchOptional.get();
+      Player firstPlayer = match.getFirstPlayer();
+      Player secondPlayer = match.getSecondPlayer();
+
+      // Subtract previous points
+      if (match.getResult() != null) {
+        int[] previousPoints = transformResultToPoints(match.getResult());
+        firstPlayer.setPoints(firstPlayer.getPoints() - previousPoints[0]);
+        secondPlayer.setPoints(secondPlayer.getPoints() - previousPoints[1]);
+      }
+
+      // Add points
+      int[] points = transformResultToPoints(result);
+      firstPlayer.setPoints(firstPlayer.getPoints() + points[0]);
+      playerRepository.save(firstPlayer);
+      secondPlayer.setPoints(secondPlayer.getPoints() + points[1]);
+      playerRepository.save(secondPlayer);
+
+      match.setResult(result);
+      matchRepository.save(match);
     } else {
       throw new NotFoundException(String.format(MATCH_NOT_FOUND_MESSAGE, matchId));
     }
   }
 
-  private int[] parseResult(String result) {
-    String[] score = result.split(SCORE_SEPARATOR);
-    return new int[] {Integer.parseInt(score[0]), Integer.parseInt(score[1])};
-  }
+  private int[] transformResultToPoints(String result) {
+    String[] scoreString = result.split(SCORE_SEPARATOR);
+    int[] score = {Integer.parseInt(scoreString[0]), Integer.parseInt(scoreString[1])};
 
-  @Override
-  public WinnersDto getWinners() {
-    // TODO
-    PlayerDto player1 = new PlayerDto("Player 1", 1);
-    PlayerDto player2 = new PlayerDto("Player 2", 2);
-    return new WinnersDto(player1, player2);
+    return score[0] > score[1] ? new int[] {POINTS_FOR_WIN, POINTS_FOR_LOST} : new int[] {POINTS_FOR_LOST, POINTS_FOR_WIN};
   }
 
 }

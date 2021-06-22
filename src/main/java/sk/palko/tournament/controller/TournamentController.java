@@ -16,6 +16,7 @@ import sk.palko.tournament.dto.MessageDto;
 import sk.palko.tournament.dto.MatchesDto;
 import sk.palko.tournament.dto.WinnersDto;
 import sk.palko.tournament.service.MatchService;
+import sk.palko.tournament.service.PlayerService;
 
 import javax.validation.Valid;
 import javax.validation.constraints.Positive;
@@ -26,6 +27,9 @@ import javax.validation.constraints.Positive;
 public class TournamentController {
 
   public static final String MATCH_ID_VALIDATION_MESSAGE = "Match ID should be greater than 0";
+
+  @Autowired
+  private PlayerService playerService;
 
   @Autowired
   private MatchService matchService;
@@ -58,7 +62,7 @@ public class TournamentController {
 
   @GetMapping("/winner")
   public WinnersDto getWinners() {
-    return matchService.getWinners();
+    return playerService.getWinners();
   }
 
 }

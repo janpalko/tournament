@@ -3,6 +3,7 @@ package sk.palko.tournament.domain;
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
 import javax.persistence.Id;
 import java.util.Objects;
 import java.util.StringJoiner;
@@ -20,9 +21,8 @@ public class Player {
   @Column(nullable = false)
   private Integer age;
 
-  // TODO
   @Column
-  private Integer points;
+  private int points;
 
   public Integer getPlayerId() {
     return playerId;
@@ -48,11 +48,11 @@ public class Player {
     this.age = age;
   }
 
-  public Integer getPoints() {
+  public int getPoints() {
     return points;
   }
 
-  public void setPoints(Integer points) {
+  public void setPoints(int points) {
     this.points = points;
   }
 
@@ -79,6 +79,7 @@ public class Player {
         .add("playerId=" + playerId)
         .add("name='" + name + "'")
         .add("age=" + age)
+        .add("points=" + points)
         .toString();
   }
 

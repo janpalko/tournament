@@ -12,8 +12,10 @@ import java.util.Objects;
 import java.util.StringJoiner;
 
 @Entity
-//@Table(uniqueConstraints = @UniqueConstraint(columnNames = {"firstPlayerId", "secondPlayerId"}))
+@Table(uniqueConstraints = @UniqueConstraint(columnNames = {"firstPlayerId", "secondPlayerId"}))
 public class Match {
+
+  public static final String SCORE_SEPARATOR = ":";
 
   @Id
   @GeneratedValue
@@ -28,10 +30,7 @@ public class Match {
   private Player secondPlayer;
 
   @Column
-  private Integer firstPlayerScore;
-
-  @Column
-  private Integer secondPlayerScore;
+  private String result;
 
   public Integer getMatchId() {
     return matchId;
@@ -57,26 +56,18 @@ public class Match {
     this.secondPlayer = secondPlayer;
   }
 
-  public Integer getFirstPlayerScore() {
-    return firstPlayerScore;
+  public String getResult() {
+    return result;
   }
 
-  public void setFirstPlayerScore(Integer firstPlayerScore) {
-    this.firstPlayerScore = firstPlayerScore;
-  }
-
-  public Integer getSecondPlayerScore() {
-    return secondPlayerScore;
-  }
-
-  public void setSecondPlayerScore(Integer secondPlayerScore) {
-    this.secondPlayerScore = secondPlayerScore;
+  public void setResult(String result) {
+    this.result = result;
   }
 
   @Override
   public int hashCode() {
-    //return Objects.hashCode(matchId);
-    return Objects.hash(firstPlayer.getPlayerId(), secondPlayer.getPlayerId());
+    //return Objects.hashCode(getMatchId());
+    return Objects.hash(getFirstPlayer(), getSecondPlayer());
   }
 
   @Override
@@ -88,9 +79,9 @@ public class Match {
       return false;
     }
     Match match = (Match) o;
-    //return matchId.equals(match.matchId);
-    return Objects.equals(firstPlayer.getPlayerId(), match.getFirstPlayer().getPlayerId())
-        && Objects.equals(secondPlayer.getPlayerId(), match.getSecondPlayer().getPlayerId());
+    //return getMatchId().equals(match.getMatchId());
+    return Objects.equals(getFirstPlayer(), match.getFirstPlayer())
+        && Objects.equals(getSecondPlayer(), match.getSecondPlayer());
   }
 
   @Override
@@ -99,8 +90,7 @@ public class Match {
         .add("matchId=" + matchId)
         .add("firstPlayer=" + firstPlayer)
         .add("secondPlayer=" + secondPlayer)
-        .add("firstPlayerScore=" + firstPlayerScore)
-        .add("secondPlayerScore=" + secondPlayerScore)
+        .add("result='" + result + "'")
         .toString();
   }
 

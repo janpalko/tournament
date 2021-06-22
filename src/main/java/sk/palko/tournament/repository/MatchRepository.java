@@ -4,4 +4,7 @@ import org.springframework.data.repository.CrudRepository;
 import sk.palko.tournament.domain.Match;
 
 public interface MatchRepository extends CrudRepository<Match, Integer> {
+
+  long countByResultIsNull();
+
 }
