@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+
+  <appender name="Console" class="ch.qos.logback.core.ConsoleAppender">
+    <layout class="ch.qos.logback.classic.PatternLayout">
+      <Pattern>%date %highlight(%-5level) [%green(%thread)] %yellow(%logger{30}:%line) %msg%n%throwable{5}
+      </Pattern>
+    </layout>
+  </appender>
+
+  <root level="warn">
+    <appender-ref ref="Console"/>
+  </root>
+
+  <logger name="sk.palko.tournament" level="info" additivity="false">
+    <appender-ref ref="Console"/>
+  </logger>
+
+</configuration>
