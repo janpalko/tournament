@@ -12,7 +12,7 @@ import java.util.Objects;
 import java.util.StringJoiner;
 
 @Entity
-@Table(uniqueConstraints = @UniqueConstraint(columnNames = {"firstPlayerId", "secondPlayerId"}))
+//@Table(uniqueConstraints = @UniqueConstraint(columnNames = {"firstPlayerId", "secondPlayerId"}))
 public class Match {
 
   @Id

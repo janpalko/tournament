@@ -15,7 +15,7 @@ import java.util.stream.StreamSupport;
 @Service
 public class PlayerServiceImpl implements PlayerService {
 
-  public static final int MAX_PLAYER_COUNT = 6;
+  public static final int PLAYER_COUNT = 6;
 
   @Autowired
   private PlayerRepository playerRepository;
@@ -29,8 +29,8 @@ public class PlayerServiceImpl implements PlayerService {
 
   @Override
   public PlayerDto createPlayer(PlayerRequestDto playerRequest) {
-    if (playerRepository.count() >= MAX_PLAYER_COUNT) {
-      throw new MaxPlayerCountReachedException(MAX_PLAYER_COUNT);
+    if (playerRepository.count() >= PLAYER_COUNT) {
+      throw new MaxPlayerCountReachedException(PLAYER_COUNT);
     }
 
     Player player = mapToDomain(playerRequest);
