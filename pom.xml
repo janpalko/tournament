@@ -14,6 +14,8 @@
   <groupId>sk.palko</groupId>
   <artifactId>tournament</artifactId>
   <version>1.0.0-SNAPSHOT</version>
+  <name>Tournament API</name>
+  <description>Tournament API</description>
 
   <properties>
     <maven.compiler.source>16</maven.compiler.source>
@@ -52,7 +54,7 @@
       <plugin>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-maven-plugin</artifactId>
-        <version>${parent.version}</version>
+        <version>${project.parent.version}</version>
       </plugin>
     </plugins>
   </build>
