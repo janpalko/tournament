@@ -46,7 +46,7 @@ public class MatchServiceImplTest {
   @MockBean
   private PlayerRepository playerRepository;
 
-  @RepeatedTest(1)
+  @RepeatedTest(50)
   public void testListDraw() {
     // Given
     List<Player> players = IntStream.rangeClosed(1, PLAYER_COUNT)

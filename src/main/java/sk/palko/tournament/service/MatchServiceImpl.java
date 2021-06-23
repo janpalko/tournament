@@ -25,6 +25,7 @@ import java.util.Random;
 import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+import java.util.stream.LongStream;
 import java.util.stream.StreamSupport;
 
 import static sk.palko.tournament.domain.Match.SCORE_SEPARATOR;
@@ -93,29 +94,41 @@ public class MatchServiceImpl implements MatchService {
   }
 
   private void createMatchesForPlayer(Player[] players, Integer[][] matches, int playerIndex) {
-    for (long matchCount = getMatchCount(matches[playerIndex]); matchCount < MATCH_COUNT_PER_PLAYER; matchCount++) {
-      Set<Integer> possibleOpponents = getOpponentsWithMinMatches(matches, playerIndex);
-      int randomOpponentIndex = possibleOpponents.stream()
-          .skip(new Random().nextInt(possibleOpponents.size()))
-          .findFirst()
-          .orElseThrow(NoFreePlayerFoundException::new); // should not happen
+    long matchCount = getMatchCount(matches[playerIndex]);
+    Map<Long, Set<Integer>> opponentsGropedByMatchCount = getOpponentsGroupedByMatchCount(matches, playerIndex);
+    for (Set<Integer> opponents : opponentsGropedByMatchCount.values()) {
+      if (matchCount == MATCH_COUNT_PER_PLAYER) {
+        return;
+      }
+      if (opponents.isEmpty()) {
+        continue;
+      }
 
-      createMatch(players[playerIndex], players[randomOpponentIndex]);
-      matches[playerIndex][randomOpponentIndex] = CREATE_MATCH;
-      matches[randomOpponentIndex][playerIndex] = CREATED_MATCH;
+      do {
+        int randomOpponentIndex = opponents.stream().skip(new Random().nextInt(opponents.size())).findFirst().get();
+        createMatch(players[playerIndex], players[randomOpponentIndex]);
+        matches[playerIndex][randomOpponentIndex] = CREATE_MATCH;
+        matches[randomOpponentIndex][playerIndex] = CREATED_MATCH;
+        opponents.remove(randomOpponentIndex);
+        matchCount++;
+
+        if (matchCount == MATCH_COUNT_PER_PLAYER) {
+          return;
+        }
+      } while (!opponents.isEmpty());
     }
+
+    throw new NoFreePlayerFoundException(); // should not happen
   }
 
   private long getMatchCount(Integer[] matches) {
     return Arrays.stream(matches).filter(j -> j != null && j != IMPOSSIBLE_MATCH).count();
   }
 
-  private Set<Integer> getOpponentsWithMinMatches(Integer[][] matches, int playerIndex) {
+  private Map<Long, Set<Integer>> getOpponentsGroupedByMatchCount(Integer[][] matches, int playerIndex) {
     // key = num of created matches, value = list of possible opponents
-    Map<Long, Set<Integer>> matchCounts = new LinkedHashMap<>(MATCH_COUNT_PER_PLAYER);
-    for (long i = 0; i < MATCH_COUNT_PER_PLAYER; i++) {
-      matchCounts.put(i, new HashSet<>());
-    }
+    Map<Long, Set<Integer>> opponentsGropedByMatchCount = new LinkedHashMap<>(MATCH_COUNT_PER_PLAYER);
+    LongStream.range(0, MATCH_COUNT_PER_PLAYER).forEach(i -> opponentsGropedByMatchCount.put(i, new HashSet<>()));
 
     // Assign opponents to groups based on already created matches
     for (int i = 0; i < PLAYER_COUNT; i++) {
@@ -124,18 +137,11 @@ public class MatchServiceImpl implements MatchService {
       }
       long matchCount = getMatchCount(matches[i]);
       if (matchCount < MATCH_COUNT_PER_PLAYER) {
-        matchCounts.get(matchCount).add(i);
+        opponentsGropedByMatchCount.get(matchCount).add(i);
       }
     }
 
-    // Find first non empty group of possible opponents with minimum created matches
-    for (Set<Integer> possibleOpponents : matchCounts.values()) {
-      if (!possibleOpponents.isEmpty()) {
-        return possibleOpponents;
-      }
-    }
-
-    throw new NoFreePlayerFoundException(); // should not happen
+    return opponentsGropedByMatchCount;
   }
 
   private Match createMatch(Player firstPlayer, Player secondPlayer) {
