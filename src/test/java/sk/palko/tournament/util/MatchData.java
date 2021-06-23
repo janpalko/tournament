@@ -12,4 +12,10 @@ public final class MatchData {
     return match;
   }
 
+  public static Match createMatchWithId(int id, Player firstPlayer, Player secondPlayer) {
+    Match match = createMatch(firstPlayer, secondPlayer);
+    match.setMatchId(id);
+    return match;
+  }
+
 }

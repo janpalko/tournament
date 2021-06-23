@@ -64,7 +64,7 @@ public class MatchServiceImpl implements MatchService {
     );
   }
 
-  protected void createDraw() {
+  private void createDraw() {
     long currentPlayerCount = playerRepository.count();
     if (playerRepository.count() != PLAYER_COUNT) {
       throw new TournamentIllegalStateException(String.format("Unable to create tournament draw. '%d' players are required, but got only '%d'.",
@@ -143,7 +143,7 @@ public class MatchServiceImpl implements MatchService {
     match.setFirstPlayer(firstPlayer);
     match.setSecondPlayer(secondPlayer);
     match = matchRepository.save(match);
-    LOGGER.debug("Created " + match);
+    LOGGER.info("Created " + match);
     return match;
   }
 

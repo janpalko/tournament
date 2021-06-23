@@ -12,4 +12,12 @@ public final class PlayerData {
     return player;
   }
 
+  public static Player createPlayerWithId(int i) {
+    Player player = createPlayer(i);
+    player.setPlayerId(i);
+    return player;
+  }
+
+
+
 }
