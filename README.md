@@ -10,3 +10,7 @@ If you want to see the data, you can access them via http://localhost:8080/h2-co
 * database: ./data/tournament
 * username: sa
 * password: password
+
+## TODO
+
+There are implemented some unit, integration and smoke tests, but they aren't covering everything, just to demonstrate unit testing with Mockito, then repository testing with in-memory DB and also a controller is covered by (semi-)unit and integration tests.
