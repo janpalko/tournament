@@ -1,15 +1,15 @@
 # Tournament web application
 
-The application runs on port 8080 and is available on http://localhost:8080/.
+The application requires JDK 16 for compilation and can be launched by using main class `sk.palko.tournament.WebApplication`. It runs on `port 8080` and is available on http://localhost:8080/.
 
 ## Database
 
 The application uses in-memory database, but it's persisted to the file, so if you close the app and run again you will see all previous data. The database is saved to current working directory under directory data, so whenever you need a fresh DB, you can delete it.
 
 If you want to see the data, you can access them via http://localhost:8080/h2-console/ where:
-* database: ./data/tournament
-* username: sa
-* password: password
+* database: `./data/tournament`
+* username: `sa`
+* password: `password`
 
 ## TODO
 
